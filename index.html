@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111512">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tacho Buddy">
+<title>Tacho Buddy</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111512'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23ffb21a' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffb21a'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23111512'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23ffb21a' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23ffb21a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#111512; --card:#1b211c; --ink:#f1f4ef; --muted:#a3ada4; --line:#2e382f;
+  --green:#34c26b; --amber:#ffb21a; --red:#ff4d42;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.4;-webkit-font-smoothing:antialiased;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:520px;margin:0 auto;padding-inline:16px;padding-block:16px 40px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-size:1.6rem;margin:0;text-transform:uppercase;letter-spacing:.05em}
+h1 span{color:var(--amber)}
+h2{font-family:var(--display);font-size:1.4rem;margin:0;text-transform:uppercase;letter-spacing:.05em}
+.num{font-variant-numeric:tabular-nums}
+
+/* big status light */
+.status{border-radius:20px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;gap:6px;border:3px solid transparent}
+.status .word{font-family:var(--display);font-size:3rem;font-weight:700;line-height:1;text-transform:uppercase;letter-spacing:.03em}
+.status .say{font-size:1.1rem}
+.status.green{background:#12301d;border-color:var(--green)} .status.green .word{color:var(--green)}
+.status.amber{background:#3a2a07;border-color:var(--amber)} .status.amber .word{color:var(--amber)}
+.status.red{background:#3d1210;border-color:var(--red);animation:pulse 1.2s infinite} .status.red .word{color:var(--red)}
+.status.grey{background:var(--card);border-color:var(--line)} .status.grey .word{color:var(--ink)}
+@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(255,77,66,.25)}}
+
+/* big numbers */
+.big{background:var(--card);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.line{display:flex;flex-direction:column;gap:6px}
+.line .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.line .lab{font-weight:700}
+.line .val{font-family:var(--display);font-size:1.9rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.line .sub{font-size:.9rem;color:var(--muted)}
+.bar{height:14px;border-radius:8px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:8px;background:var(--green);transition:width .5s}
+.bar.amber i{background:var(--amber)} .bar.red i{background:var(--red)}
+
+/* buttons */
+.btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+button{font:inherit;cursor:pointer;border:0;border-radius:18px;color:var(--ink);background:var(--card)}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
+.mode{display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 6px;font-family:var(--display);font-size:1.3rem;font-weight:700;text-transform:uppercase;border:3px solid var(--line)}
+.mode .e{font-size:2.2rem;line-height:1}
+.mode.on{border-color:var(--amber);background:#2e240b}
+.go{width:100%;padding:22px;font-family:var(--display);font-size:1.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--green);color:#06210f}
+.stop{width:100%;padding:16px;font-family:var(--display);font-size:1.4rem;font-weight:700;text-transform:uppercase;background:transparent;border:3px solid var(--red);color:var(--red)}
+.small-btns{display:flex;gap:10px;flex-wrap:wrap}
+.small-btns button{flex:1 1 140px;padding:12px;font-size:.95rem;border:2px solid var(--line);background:transparent}
+.tip{font-size:.9rem;color:var(--muted);text-align:center;margin:0}
+
+/* warnings */
+#warnings{display:flex;flex-direction:column;gap:10px}
+#warnings:empty{display:none}
+.warn{border-radius:14px;padding:14px 16px;font-weight:700;font-size:1.05rem;display:flex;gap:12px;align-items:flex-start}
+.warn .ic{font-size:1.5rem;line-height:1}
+.warn span{display:block;font-weight:400;font-size:.95rem;margin-top:2px}
+.warn.red{background:#3d1210;color:#ffd7d3;border-left:6px solid var(--red)}
+.warn.amber{background:#3a2a07;color:#ffe9bd;border-left:6px solid var(--amber)}
+.warn.green{background:#12301d;color:#d2f5df;border-left:6px solid var(--green)}
+
+details{background:var(--card);border-radius:18px;padding:16px}
+summary{cursor:pointer;font-family:var(--display);font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.rules{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rules li{display:flex;gap:12px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:10px}
+.rules b{font-family:var(--display);font-size:1.3rem;color:var(--amber);min-width:4.2rem}
+.days{width:100%;border-collapse:collapse;margin-top:12px;font-size:.95rem;font-variant-numeric:tabular-nums}
+.days td,.days th{padding:8px 4px;border-bottom:1px solid var(--line);text-align:left}
+.days th{color:var(--muted);font-weight:400;font-size:.85rem}
+.foot{font-size:.8rem;color:var(--muted);text-align:center;margin:0}
+@media (prefers-reduced-motion:reduce){.status.red{animation:none}.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Tacho <span>Buddy</span></h1>
+
+  <div id="warnings" role="alert"></div>
+  <section class="status grey" id="status" aria-live="polite"></section>
+  <section class="big" id="numbers"></section>
+  <section id="controls"></section>
+
+  <section class="big" aria-labelledby="wkH">
+    <h2 id="wkH">This week</h2>
+    <div id="week"></div>
+  </section>
+
+  <details>
+    <summary>My shifts</summary>
+    <div id="history"></div>
+  </details>
+
+  <details>
+    <summary>The rules</summary>
+    <ul class="rules">
+      <li><b>4h 30m</b><span>Most driving before a break. Then take a <strong>45 min</strong> break (or 15 min + 30 min).</span></li>
+      <li><b>9h</b><span>Most driving in one day. 10h is OK on 2 days a week.</span></li>
+      <li><b>13h</b><span>Longest day, so you still get 11h rest.</span></li>
+      <li><b>11h</b><span>Rest between shifts. 9h is OK up to 3 times a week.</span></li>
+      <li><b>56h</b><span>Most driving in one week.</span></li>
+      <li><b>60h</b><span>Most work in one week (driving + other work).</span></li>
+      <li><b>45h</b><span>Weekend rest. 24h is OK every other week.</span></li>
+    </ul>
+  </details>
+
+  <p class="foot">Helper only. Your tachograph is the real record — always follow it.<br>Your shifts are saved on this phone.</p>
+</main>
+
+<script>
+(function(){
+  var MIN=60000, HR=3600000, KEY="tacho-simple-v1";
+  var controlsSig="", data=load(), audio=null, wake=null, fired={}, confirmEnd=false;
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||{days:[]}}catch(e){return {days:[]}}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){} draw()}
+  function $(id){return document.getElementById(id)}
+  function now(){return Date.now()}
+  function t2(ms){ms=Math.max(0,ms);var h=Math.floor(ms/HR),m=Math.floor(ms%HR/MIN);return h?(m?h+"h "+m+"m":h+"h"):m+"m"}
+  function clock(ms){ms=Math.max(0,ms);var m=Math.floor(ms/MIN),s=Math.floor(ms%MIN/1000);return m+":"+(s<10?"0":"")+s}
+  function hm(t){return new Date(t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}
+  function day(t){return new Date(t).toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"})}
+  function weekStart(t){var d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()}
+  function current(){var d=data.days[data.days.length-1];return d&&d.end==null?d:null}
+  function lastEnded(){for(var i=data.days.length-1;i>=0;i--)if(data.days[i].end!=null)return data.days[i];return null}
+
+  function totals(d,t){var o={drive:0,work:0,brk:0,len:(d.end||t)-d.start};d.segs.forEach(function(s){var x=(s.e||t)-s.s;if(s.m==="drive")o.drive+=x;else if(s.m==="work")o.work+=x;else o.brk+=x});return o}
+  // driving since last proper break (45, or 15 then 30)
+  function sinceBreak(d,t){var since=0,had15=false,n=0;d.segs.forEach(function(s){var x=(s.e||t)-s.s;if(s.m==="drive")since+=x;else if(s.m==="break"){if(x>=45*MIN||(had15&&x>=30*MIN)){since=0;had15=false;n++}else if(x>=15*MIN)had15=true}});return {since:since,had15:had15,n:n}}
+
+  /* sound + vibrate */
+  function wakeAudio(){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume()}catch(e){}}
+  function alarm(level){
+    try{if(navigator.vibrate)navigator.vibrate(level==="red"?[500,200,500,200,500]:[300,150,300])}catch(e){}
+    if(!audio)return;try{var n=level==="red"?4:2;for(var i=0;i<n;i++){var o=audio.createOscillator(),g=audio.createGain();o.type="square";o.frequency.value=level==="red"?900:650;g.gain.value=.12;o.connect(g);g.connect(audio.destination);var t0=audio.currentTime+i*.4;o.start(t0);o.stop(t0+.25)}}catch(e){}
+  }
+  function keepOn(){if(!("wakeLock" in navigator)){note="Your phone can't keep the screen on. Change auto-lock in Settings.";draw();return}
+    (wake?wake.release().then(function(){wake=null;draw()}):navigator.wakeLock.request("screen").then(function(w){wake=w;w.addEventListener("release",function(){wake=null;draw()});draw()})).catch(function(){note="Your phone said no to keeping the screen on.";draw()})}
+  var note="";
+
+  /* actions */
+  function startDay(){wakeAudio();fired={};var t=now();data.days.push({start:t,end:null,segs:[{m:"work",s:t,e:null}]});save()}
+  function setMode(m){wakeAudio();var d=current();if(!d)return;var last=d.segs[d.segs.length-1];if(last.m===m)return;var t=now();last.e=t;d.segs.push({m:m,s:t,e:null});save()}
+  function endDay(){var d=current();if(!d)return;if(!confirmEnd){confirmEnd=true;draw();setTimeout(function(){confirmEnd=false;draw()},5000);return}confirmEnd=false;var t=now();d.segs[d.segs.length-1].e=t;d.end=t;save()}
+  function undo(){var d=current();if(!d)return;if(d.segs.length>1){d.segs.pop();d.segs[d.segs.length-1].e=null}else{data.days.pop()}save()}
+
+  /* warnings */
+  function checks(t){
+    var w=[],d=current();
+    if(d){
+      var o=totals(d,t),b=sinceBreak(d,t),last=d.segs[d.segs.length-1];
+      if(b.since>=4.5*HR)w.push(["red","cd"+b.n,"STOP DRIVING NOW","You have driven 4h 30m. Take a 45 minute break."]);
+      else if(b.since>=4*HR)w.push(["amber","cd4"+b.n,"Break needed in "+t2(4.5*HR-b.since),"Find a safe place to stop."]);
+      if(last.m==="break"){var x=t-last.s,need=b.had15?30*MIN:45*MIN;
+        if(x>=need)w.push(["green","bk"+last.s,"Break finished","You can drive again."]);}
+      if(o.drive>=10*HR)w.push(["red","d10","Over 10h driving today","This is over the legal limit. Stop driving."]);
+      else if(o.drive>=9*HR)w.push(["red","d9","9h driving today","Only OK if you have not done two 10h days this week."]);
+      else if(o.drive>=8.5*HR)w.push(["amber","d85","Only "+t2(9*HR-o.drive)+" driving left today",""]);
+      if(o.len>=13*HR)w.push(["red","l13","Your day is over 13h","You will not get your 11h rest. Call the office."]);
+      else if(o.len>=12*HR)w.push(["amber","l12","Long day: "+t2(o.len),"Finish within 13h."]);
+    }else{
+      var le=lastEnded();if(le){var rest=t-le.end;if(rest<9*HR)w.push(["amber","r9","Do not start yet","You need at least 11h rest (9h is the minimum). "+t2(11*HR-rest)+" more for 11h."])}
+    }
+    var wk=weekTotals(t);
+    if(wk.drive>=56*HR)w.push(["red","w56","56h driving this week","Weekly limit reached. No more driving this week."]);
+    else if(wk.drive>=50*HR)w.push(["amber","w50","Only "+t2(56*HR-wk.drive)+" driving left this week",""]);
+    if(wk.work>=60*HR)w.push(["red","w60","60h work this week","Weekly work limit reached."]);
+    if(wk.tens>2)w.push(["red","t10","More than two 10h driving days","Only 2 are allowed each week."]);
+    return w;
+  }
+  function weekTotals(t){var ws=weekStart(t),o={drive:0,work:0,tens:0};data.days.forEach(function(d){if(d.start>=ws){var x=totals(d,t);o.drive+=x.drive;o.work+=x.drive+x.work;if(x.drive>9*HR)o.tens++}});return o}
+
+  function bar(label,val,max,sub,warnAt){var f=Math.min(1,val/max),c=val>=max?"red":val>=warnAt?"amber":"";
+    return '<div class="line"><div class="top"><span class="lab">'+label+'</span><span class="val">'+t2(val)+' <small style="font-size:.55em;color:var(--muted)">of '+t2(max)+'</small></span></div><div class="bar '+c+'"><i style="width:'+(f*100).toFixed(1)+'%"></i></div>'+(sub?'<span class="sub">'+sub+'</span>':'')+'</div>'}
+
+  function draw(){
+    var t=now(),d=current();
+    /* warnings + alarm */
+    var ws=checks(t);
+    ws.forEach(function(x){if(!fired[x[1]]){fired[x[1]]=1;alarm(x[0])}});
+    var ic={red:"⛔",amber:"⚠️",green:"✅"};
+    $("warnings").innerHTML=(note?'<div class="warn amber"><span class="ic">ℹ️</span><div>'+note+'</div></div>':'')+ws.map(function(x){return '<div class="warn '+x[0]+'"><span class="ic">'+ic[x[0]]+'</span><div>'+x[2]+(x[3]?'<span>'+x[3]+'</span>':'')+'</div></div>'}).join("");
+    /* status light */
+    var st=$("status");
+    if(!d){
+      var le=lastEnded();
+      st.className="status grey";
+      if(le){var rest=t-le.end;st.className="status "+(rest>=11*HR?"green":rest>=9*HR?"amber":"red");
+        st.innerHTML='<div class="say">Resting for</div><div class="word num">'+t2(rest)+'</div><div class="say">'+(rest>=11*HR?"Rest done. You can start.":"Need 11h rest · "+t2(11*HR-rest)+" to go")+'</div>'}
+      else st.innerHTML='<div class="word">Off duty</div><div class="say">Tap <b>Start day</b> when you begin work</div>';
+    }else{
+      var o=totals(d,t),b=sinceBreak(d,t),last=d.segs[d.segs.length-1],red=ws.some(function(x){return x[0]==="red"}),amber=ws.some(function(x){return x[0]==="amber"});
+      if(last.m==="break"){var x=t-last.s,need=b.had15?30*MIN:45*MIN;
+        st.className="status "+(x>=need?"green":"amber");
+        st.innerHTML='<div class="say">On break</div><div class="word num">'+clock(x)+'</div><div class="say">'+(x>=need?"Break done ✓ You can drive":"Need "+(need/MIN)+" min · "+t2(need-x)+" to go")+'</div>';
+      }else{
+        st.className="status "+(red?"red":amber?"amber":"green");
+        st.innerHTML='<div class="word">'+(red?"Stop":amber?"Break soon":"You're OK")+'</div><div class="say">'+(last.m==="drive"?"Driving":"Working")+' since '+hm(last.s)+'</div>';
+      }
+    }
+    /* numbers */
+    if(d){var o2=totals(d,t),b2=sinceBreak(d,t);
+      $("numbers").hidden=false;
+      $("numbers").innerHTML=bar("Driving before next break",b2.since,4.5*HR,t2(4.5*HR-b2.since)+" left",4*HR)+
+        bar("Driving today",o2.drive,9*HR,"",8.5*HR)+
+        bar("Length of day",o2.len,13*HR,"Started at "+hm(d.start),12*HR);
+    }else $("numbers").hidden=true;
+    /* controls (only rebuilt when something changes, so taps never get lost) */
+    var sig=(d?d.segs.length+'-'+d.segs[d.segs.length-1].m:'off')+confirmEnd+!!wake;
+    if(sig!==controlsSig){controlsSig=sig;
+    if(d){var cur=d.segs[d.segs.length-1].m;
+      $("controls").innerHTML='<div class="btns">'+
+        [["drive","🚚","Drive"],["break","☕","Break"],["work","🔧","Work"]].map(function(m){return '<button class="mode'+(cur===m[0]?' on':'')+'" data-m="'+m[0]+'" aria-pressed="'+(cur===m[0])+'"><span class="e" aria-hidden="true">'+m[1]+'</span>'+m[2]+'</button>'}).join("")+'</div>'+
+        '<p class="tip">Tap what you are doing now. <b>Work</b> = checks, loading, paperwork.</p>'+
+        '<div class="small-btns" style="margin-top:12px"><button id="wakeB">'+(wake?"Screen stays on ✓":"Keep screen on")+'</button><button id="undoB">Undo last tap</button></div>'+
+        '<div style="margin-top:12px"><button class="stop" id="endB">'+(confirmEnd?"Tap again to end day":"End day")+'</button></div>';
+      Array.prototype.forEach.call(document.querySelectorAll("[data-m]"),function(b){b.onclick=function(){setMode(b.getAttribute("data-m"))}});
+      $("endB").onclick=endDay;$("undoB").onclick=undo;$("wakeB").onclick=keepOn;
+    }else{
+      $("controls").innerHTML='<button class="go" id="startB">▶ Start day</button><p class="tip" style="margin-top:10px">Starts on <b>Work</b> for your walkaround check.</p>';
+      $("startB").onclick=startDay;
+    }}
+    /* week */
+    var wk=weekTotals(t);
+    $("week").innerHTML='<div style="display:flex;flex-direction:column;gap:14px">'+bar("Driving this week",wk.drive,56*HR,"",50*HR)+bar("Work this week",wk.work,60*HR,"Driving + other work. Keep the average under 48h.",48*HR)+
+      '<div class="line"><div class="top"><span class="lab">10h driving days</span><span class="val">'+wk.tens+' <small style="font-size:.55em;color:var(--muted)">of 2</small></span></div></div></div>';
+    /* history */
+    var rows=data.days.slice(-14).reverse().map(function(x){var o=totals(x,t);return '<tr><td>'+day(x.start)+'</td><td>'+hm(x.start)+'–'+(x.end?hm(x.end):"now")+'</td><td>'+t2(o.drive)+'</td></tr>'}).join("");
+    $("history").innerHTML=rows?'<table class="days"><tr><th>Day</th><th>Time</th><th>Driving</th></tr>'+rows+'</table>':'<p class="tip" style="margin-top:12px">Your last 14 shifts will show here.</p>';
+  }
+  setInterval(draw,1000);
+  document.addEventListener("visibilitychange",draw);
+  draw();
+})();
+</script>
+</body>
+</html>
